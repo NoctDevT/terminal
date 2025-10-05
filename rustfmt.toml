@@ -1,0 +1,13 @@
+style_edition = "2024"
+use_small_heuristics = "Max"
+imports_granularity = "Module"
+group_imports = "StdExternalCrate"
+max_width = 90
+comment_width = 110
+merge_derives = false
+chain_width = 70
+single_line_if_else_max_width = 80
+struct_lit_width = 70
+struct_variant_width = 80
+use_field_init_shorthand = true
+wrap_comments = true
