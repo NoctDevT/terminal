@@ -5,10 +5,10 @@ use crate::data::todo_item::TodoItem;
 use crate::state::AppState;
 use color_eyre::Result;
 use ratatui::crossterm::event;
-use ratatui::crossterm::event::Event;
+use ratatui::crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::prelude::{Color, Style, Stylize};
-use ratatui::widgets::{Block, BorderType, List, ListItem, Widget};
+use ratatui::widgets::{Block, BorderType, List, ListDirection, ListItem, Widget};
 use ratatui::{DefaultTerminal, Frame};
 
 fn main() -> Result<()> {
@@ -43,33 +43,17 @@ fn run(mut terminal: DefaultTerminal, app_state: &mut AppState) -> Result<()> {
         terminal.draw(|frame| render(frame, app_state))?;
 
         if let Event::Key(key) = event::read()? {
-            match key.code {
-                event::KeyCode::Esc => break,
-                event::KeyCode::Char(char) => match char {
-                    'D' => {
-                        if let Some(index) = app_state.list_state.selected() {
-                            if index < app_state.items.len() {
-                                app_state.items.remove(index);
-
-                                if app_state.items.is_empty() {
-                                    app_state.list_state.select(None);
-                                } else if index >= app_state.items.len() {
-                                    // Deleted last item, move selection up
-                                    app_state.list_state.select(Some(app_state.items.len() - 1));
-                                }
-                                // else: keep same index (now points to next item)
-                            }
-                        }
+            if key.kind == KeyEventKind::Press {
+                match key.code {
+                    event::KeyCode::Esc => break,
+                    KeyCode::Char('k') | KeyCode::Up => {
+                        app_state.list_state.select_previous()
                     }
-                    'k' => {
-                        app_state.list_state.select_previous();
-                    }
-                    'j' => {
-                        app_state.list_state.select_next();
+                    KeyCode::Char('j') | KeyCode::Down => {
+                        app_state.list_state.select_next()
                     }
                     _ => {}
-                },
-                _ => {}
+                }
             }
         }
     }
@@ -77,20 +61,27 @@ fn run(mut terminal: DefaultTerminal, app_state: &mut AppState) -> Result<()> {
 }
 
 fn render(frame: &mut Frame, app_state: &mut AppState) {
-    let [border_area] = Layout::vertical([Constraint::Fill(1)]).margin(1).areas(frame.area());
+    let [border_area] =
+        Layout::vertical([Constraint::Fill(1)]).margin(1).areas(frame.area());
 
-    let [inner_area] = Layout::vertical([Constraint::Fill(1)]).margin(1).areas(border_area);
+    let [inner_area] =
+        Layout::vertical([Constraint::Fill(1)]).margin(1).areas(border_area);
 
     Block::bordered()
         .border_type(BorderType::Rounded)
         .fg(Color::Yellow)
         .render(border_area, frame.buffer_mut());
 
-    let list_items = app_state.items.iter().map(|item| ListItem::from(item.description.clone()));
+    let list_items: Vec<ListItem> = app_state
+        .items
+        .iter()
+        .map(|item| ListItem::new(item.description.as_str()))
+        .collect();
 
     let list = List::new(list_items)
         .highlight_style(Style::default().fg(Color::Green))
-        .highlight_symbol(">");
+        .highlight_symbol(">")
+        .direction(ListDirection::TopToBottom);
     frame.render_stateful_widget(list, inner_area, &mut app_state.list_state)
     // Paragraph::new("Hello from application").render(frame.area(), frame.buffer_mut());
 }
