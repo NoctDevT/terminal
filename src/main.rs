@@ -23,7 +23,7 @@ fn main() -> Result<()> {
 
     state
         .items
-        .push(TodoItem { is_done: false, description: String::from("Hello World 1 ") });
+        .push(TodoItem { is_done: false, description: String::from("Hello World 3 ") });
     color_eyre::install()?;
 
     let terminal = ratatui::init();
@@ -45,12 +45,17 @@ fn run(mut terminal: DefaultTerminal, app_state: &mut AppState) -> Result<()> {
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 match key.code {
-                    event::KeyCode::Esc => break,
+                    KeyCode::Esc => break,
                     KeyCode::Char('k') | KeyCode::Up => {
                         app_state.list_state.select_previous()
                     }
                     KeyCode::Char('j') | KeyCode::Down => {
                         app_state.list_state.select_next()
+                    }
+                    KeyCode::Char('D') => {
+                        if let Some(index) = app_state.list_state.selected() {
+                            app_state.items.remove(index);
+                        }
                     }
                     _ => {}
                 }
