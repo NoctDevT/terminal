@@ -6,4 +6,10 @@ use ratatui::widgets::ListState;
 pub struct AppState {
     pub items: Vec<TodoItem>,
     pub list_state: ListState,
+    pub is_new_item: bool,
+    pub input_value: String
 }
+
+// pub struct TodoItem {
+//
+// }
